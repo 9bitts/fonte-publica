@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: fonte
+          POSTGRES_PASSWORD: fonte
+          POSTGRES_DB: fonte_publica
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U fonte -d fonte_publica"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://fonte:fonte@localhost:5432/fonte_publica?schema=public
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      TZ: America/Sao_Paulo
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npx prisma migrate deploy
+      - run: npx prisma db execute --file prisma/sql/fulltext.sql --schema prisma/schema.prisma
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build

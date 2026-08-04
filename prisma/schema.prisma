@@ -1,0 +1,154 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearchPostgres"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Uf {
+  sigla       String      @id @db.Char(2)
+  nome        String
+  municipios  Municipio[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Municipio {
+  id         String              @id @default(cuid())
+  codigoIbge String              @unique
+  nome       String
+  slug       String              @unique
+  ufSigla    String              @db.Char(2)
+  uf         Uf                  @relation(fields: [ufSigla], references: [sigla])
+  unidades   UnidadeCompradora[]
+  createdAt  DateTime            @default(now())
+  updatedAt  DateTime            @updatedAt
+
+  @@index([ufSigla])
+  @@index([nome])
+}
+
+model Orgao {
+  id            String              @id @default(cuid())
+  cnpj          String              @unique @db.VarChar(14)
+  razaoSocial   String
+  slug          String              @unique
+  poderId       String?             @db.VarChar(1)
+  esferaId      String?             @db.VarChar(1)
+  unidades      UnidadeCompradora[]
+  contratacoes  Contratacao[]
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@index([razaoSocial])
+}
+
+model UnidadeCompradora {
+  id             String         @id @default(cuid())
+  codigoUnidade  String
+  nomeUnidade    String
+  orgaoId        String
+  orgao          Orgao          @relation(fields: [orgaoId], references: [id])
+  municipioId    String?
+  municipio      Municipio?     @relation(fields: [municipioId], references: [id])
+  contratacoes   Contratacao[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@unique([orgaoId, codigoUnidade])
+  @@index([municipioId])
+}
+
+model Contratacao {
+  id                        String            @id @default(cuid())
+  numeroControlePNCP        String            @unique
+  numeroCompra              String?
+  anoCompra                 Int
+  processo                  String?
+  sequencialCompra          Int?
+  modalidadeId              Int
+  modalidadeNome            String
+  modoDisputaId             Int?
+  modoDisputaNome           String?
+  situacaoId                Int
+  situacaoNome              String
+  objetoCompra              String            @db.Text
+  informacaoComplementar    String?           @db.Text
+  srp                       Boolean           @default(false)
+  valorEstimado             BigInt            @default(0)
+  valorHomologado           BigInt?
+  dataPublicacao            DateTime?
+  dataInclusao              DateTime?
+  dataAtualizacao           DateTime?
+  dataAberturaProposta      DateTime?
+  dataEncerramentoProposta  DateTime?
+  linkSistemaOrigem         String?
+  usuarioNome               String?
+  ufSigla                   String?           @db.Char(2)
+  municipioCodigoIbge       String?
+  municipioNome             String?
+  orgaoId                   String
+  orgao                     Orgao             @relation(fields: [orgaoId], references: [id])
+  unidadeId                 String?
+  unidade                   UnidadeCompradora? @relation(fields: [unidadeId], references: [id])
+  itens                     ItemContratacao[]
+  createdAt                 DateTime          @default(now())
+  updatedAt                 DateTime          @updatedAt
+
+  @@index([dataPublicacao])
+  @@index([dataAberturaProposta])
+  @@index([dataEncerramentoProposta])
+  @@index([ufSigla])
+  @@index([modalidadeId])
+  @@index([situacaoId])
+  @@index([valorEstimado])
+  @@index([orgaoId])
+  @@index([municipioCodigoIbge])
+  @@index([anoCompra])
+}
+
+model ItemContratacao {
+  id              String      @id @default(cuid())
+  contratacaoId   String
+  contratacao     Contratacao @relation(fields: [contratacaoId], references: [id], onDelete: Cascade)
+  numeroItem      Int
+  descricao       String      @db.Text
+  materialOuServico String?
+  quantidade      Decimal?    @db.Decimal(20, 4)
+  valorUnitario   BigInt?
+  valorTotal      BigInt?
+  unidadeMedida   String?
+  situacaoId      Int?
+  situacaoNome    String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@unique([contratacaoId, numeroItem])
+  @@index([contratacaoId])
+}
+
+model IngestRun {
+  id              String    @id @default(cuid())
+  status          String
+  desde           String?
+  ate             String?
+  uf              String?
+  modalidadeId    Int?
+  paginaAtual     Int       @default(1)
+  totalPaginas    Int?
+  totalRegistros  Int?
+  processados     Int       @default(0)
+  upserted        Int       @default(0)
+  erros           Int       @default(0)
+  checkpoint      Json?
+  mensagem        String?   @db.Text
+  startedAt       DateTime  @default(now())
+  finishedAt      DateTime?
+  updatedAt       DateTime  @updatedAt
+
+  @@index([status])
+  @@index([startedAt])
+}

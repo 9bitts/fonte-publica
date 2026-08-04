@@ -1,0 +1,95 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #0f1215;
+  --bg-elevated: #171b20;
+  --bg-muted: #1e242b;
+  --border: #2a323c;
+  --text: #e8eaed;
+  --text-muted: #9aa3ad;
+  --accent: #c4a35a;
+  --accent-dim: #8a7340;
+  --danger: #c45c5c;
+  --focus: #e8c56a;
+  --link: #8eb4d4;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-bg-muted: var(--bg-muted);
+  --color-border: var(--border);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-accent: var(--accent);
+  --color-accent-dim: var(--accent-dim);
+  --color-danger: var(--danger);
+  --color-focus: var(--focus);
+  --color-link: var(--link);
+  --font-sans: "Source Sans 3", "Segoe UI", sans-serif;
+  --font-display: "Source Serif 4", Georgia, serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f4f2ee;
+    --bg-elevated: #ffffff;
+    --bg-muted: #ebe7e0;
+    --border: #d4cfc5;
+    --text: #1a1d21;
+    --text-muted: #5c6570;
+    --accent: #7a5c20;
+    --accent-dim: #a8843a;
+    --danger: #a33b3b;
+    --focus: #7a5c20;
+    --link: #1f4f7a;
+  }
+}
+
+html {
+  color-scheme: dark light;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+a {
+  color: var(--link);
+  text-underline-offset: 3px;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+.surface {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+}
+
+.prose-dense p {
+  margin: 0.4rem 0;
+  line-height: 1.55;
+}
