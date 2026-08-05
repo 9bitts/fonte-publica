@@ -33,15 +33,42 @@ export default async function HomePage() {
 
   const jsonLd = {
     '@context': 'https://schema.org',
-    '@type': 'Dataset',
-    name: 'Fonte Pública — contratações PNCP',
-    description:
-      'Índice pesquisável de contratações públicas brasileiras provenientes do Portal Nacional de Contratações Públicas.',
-    url: site,
-    creator: { '@type': 'Organization', name: 'Fonte Pública' },
-    temporalCoverage: '2021/',
-    spatialCoverage: { '@type': 'Place', name: 'Brasil' },
-    license: 'https://www.gov.br/pncp/pt-br/acesso-a-informacao/dados-abertos',
+    '@graph': [
+      {
+        '@type': 'WebSite',
+        name: 'Fonte Pública',
+        url: site,
+        description:
+          'Radar gratuito de licitações e contratos públicos brasileiros a partir do PNCP.',
+        inLanguage: 'pt-BR',
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: {
+            '@type': 'EntryPoint',
+            urlTemplate: `${site}/busca?q={search_term_string}`,
+          },
+          'query-input': 'required name=search_term_string',
+        },
+      },
+      {
+        '@type': 'Organization',
+        name: 'Fonte Pública',
+        url: site,
+        parentOrganization: { '@type': 'Organization', name: '9bitts', url: 'https://9bitts.dev/' },
+      },
+      {
+        '@type': 'Dataset',
+        name: 'Fonte Pública — contratações PNCP',
+        description:
+          'Índice pesquisável de contratações públicas brasileiras provenientes do Portal Nacional de Contratações Públicas.',
+        url: site,
+        creator: { '@type': 'Organization', name: 'Fonte Pública' },
+        temporalCoverage: '2021/',
+        spatialCoverage: { '@type': 'Place', name: 'Brasil' },
+        license: 'https://www.gov.br/pncp/pt-br/acesso-a-informacao/dados-abertos',
+        isBasedOn: 'https://pncp.gov.br',
+      },
+    ],
   };
 
   return (
@@ -86,6 +113,25 @@ export default async function HomePage() {
               abaixo ou configurar um alerta para quando houver dados.
             </p>
           )}
+        </div>
+      </section>
+
+      <section className="border-b border-border py-10" aria-labelledby="o-que-e">
+        <h2 id="o-que-e" className="font-display text-xl text-text">
+          O que é a Fonte Pública
+        </h2>
+        <div className="mt-4 max-w-2xl space-y-3 text-sm leading-relaxed text-text-muted sm:text-base">
+          <p>
+            A Fonte Pública é um radar gratuito de licitações e contratos públicos do Brasil. Ela
+            indexa dados abertos do Portal Nacional de Contratações Públicas (PNCP) e permite buscar
+            por palavra-chave, estado, município e órgão — sem criar conta.
+          </p>
+          <p>
+            Quem precisa acompanhar oportunidades ou fiscalizar gastos pode montar um alerta RSS
+            (Feedly, NetNewsWire e similares) e receber novidades no leitor de notícias. Os dados
+            oficiais continuam no PNCP; este site é um índice pesquisável sobre a API pública de
+            consulta.
+          </p>
         </div>
       </section>
 
