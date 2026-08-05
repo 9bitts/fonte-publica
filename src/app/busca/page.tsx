@@ -212,7 +212,7 @@ export default async function BuscaPage({ searchParams }: Props) {
             </button>
           </form>
           <p className="mt-4 text-xs text-text-muted">
-            <Link href={`/rss?${rssParams.toString()}`}>Assinar esta busca via RSS</Link>
+            <Link href={`/alertas?${rssParams.toString()}`}>Assinar esta busca via RSS</Link>
           </p>
         </aside>
 

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { searchContratacoes } from '@/lib/search';
-import { buscaQuerySchema } from '@/lib/validators';
 import { formatCentavos, formatDateBr } from '@/lib/format';
+import { searchContratacoes } from '@/lib/search';
+import { getSiteUrl, wantsHtml } from '@/lib/site';
+import { buscaQuerySchema } from '@/lib/validators';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,7 +16,14 @@ function escapeXml(s: string): string {
 }
 
 export async function GET(req: NextRequest) {
-  const site = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
+  // Clique no menu do browser → página explicativa, não XML cru.
+  if (wantsHtml(req)) {
+    const qs = req.nextUrl.searchParams.toString();
+    const target = qs ? `/alertas?${qs}` : '/alertas';
+    return NextResponse.redirect(new URL(target, req.url));
+  }
+
+  const site = getSiteUrl(req);
   const params = Object.fromEntries(req.nextUrl.searchParams.entries());
   const parsed = buscaQuerySchema.safeParse({ ...params, limit: params.limit ?? '30' });
 

@@ -18,10 +18,7 @@ export function SiteHeader() {
           <Link href="/uf/SP" className="text-text-muted no-underline hover:text-text">
             Por UF
           </Link>
-          <Link
-            href="/rss?q=tecnologia"
-            className="text-text-muted no-underline hover:text-text"
-          >
+          <Link href="/alertas" className="text-text-muted no-underline hover:text-text">
             RSS
           </Link>
         </nav>

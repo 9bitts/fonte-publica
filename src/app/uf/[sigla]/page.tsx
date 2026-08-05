@@ -62,7 +62,7 @@ export default async function UfPage({ params }: Props) {
         <p className="mt-2 text-sm text-text-muted">
           {total.toLocaleString('pt-BR')} contratações indexadas ·{' '}
           <Link href={`/busca?uf=${upper}`}>Abrir na busca</Link> ·{' '}
-          <Link href={`/rss?uf=${upper}`}>RSS</Link>
+          <Link href={`/alertas?uf=${upper}`}>RSS</Link>
         </p>
 
         <section className="mt-8">

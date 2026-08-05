@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { SearchBox } from '@/components/search-box';
 import { PageShell } from '@/components/ui';
 import { countContratacoes } from '@/lib/search';
+import { getSiteUrl } from '@/lib/site';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,6 +21,7 @@ const EXEMPLOS = [
 
 export default async function HomePage() {
   const total = await countContratacoes();
+  const site = getSiteUrl();
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -27,7 +29,7 @@ export default async function HomePage() {
     name: 'Fonte Pública — contratações PNCP',
     description:
       'Índice pesquisável de contratações públicas brasileiras provenientes do Portal Nacional de Contratações Públicas.',
-    url: process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000',
+    url: site,
     creator: { '@type': 'Organization', name: 'Fonte Pública' },
     temporalCoverage: '2021/',
     spatialCoverage: { '@type': 'Place', name: 'Brasil' },
@@ -116,17 +118,17 @@ export default async function HomePage() {
         <div className="surface mt-8 rounded-sm p-5">
           <h3 className="font-display text-base text-text">Receba alertas por RSS</h3>
           <p className="mt-2 text-sm text-text-muted">
-            Exemplo:{' '}
-            <Link href="/rss?q=tecnologia&uf=SP" className="font-mono text-xs">
-              /rss?q=tecnologia&amp;uf=SP
+            Monte um feed por palavra-chave e UF — sem cadastro. Exemplo:{' '}
+            <Link href="/alertas?q=tecnologia&uf=SP" className="font-mono text-xs">
+              /alertas?q=tecnologia&amp;uf=SP
             </Link>
           </p>
           <p className="mt-3">
             <Link
-              href="/rss?q=tecnologia&uf=SP"
+              href="/alertas?q=tecnologia&uf=SP"
               className="inline-block rounded-sm bg-accent px-4 py-2 text-sm font-medium text-bg no-underline hover:bg-accent-dim"
             >
-              Abrir feed de exemplo
+              Configurar alerta RSS
             </Link>
           </p>
         </div>
