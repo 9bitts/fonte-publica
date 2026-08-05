@@ -5,6 +5,7 @@ import { LocalFiltersForm } from '@/components/local-filters';
 import { ResultsTable } from '@/components/results-table';
 import { EmptyState, ErrorState, PageShell } from '@/components/ui';
 import { buildContratacaoWhere, pickLocalFilters } from '@/lib/contratacao-filters';
+import { dbErrorMessage } from '@/lib/db-errors';
 import { prisma } from '@/lib/db';
 import { formatCentavos } from '@/lib/format';
 
@@ -158,7 +159,7 @@ export default async function OrgaoPage({ params, searchParams }: Props) {
   } catch (err) {
     return (
       <PageShell>
-        <ErrorState message={err instanceof Error ? err.message : 'Falha ao carregar órgão'} />
+        <ErrorState message={dbErrorMessage(err)} />
       </PageShell>
     );
   }

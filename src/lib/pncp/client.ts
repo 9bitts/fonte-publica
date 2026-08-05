@@ -1,5 +1,6 @@
 import { MODALIDADES, SITUACOES } from '../constants';
 import { logger } from '../logger';
+import { resolvePncpBaseUrl } from '../security';
 import { pncpContratacaoSchema, pncpPageSchema, type PncpContratacao } from '../validators';
 
 export type PncpFetchOptions = {
@@ -21,9 +22,12 @@ export type PncpPageResult = {
   empty: boolean;
 };
 
-const BASE_URL = process.env.PNCP_BASE_URL ?? 'https://pncp.gov.br/api/consulta';
 const RATE_LIMIT_MS = Number(process.env.PNCP_RATE_LIMIT_MS ?? 350);
 const MAX_RETRIES = Number(process.env.PNCP_MAX_RETRIES ?? 5);
+
+function baseUrl(): string {
+  return resolvePncpBaseUrl();
+}
 
 let lastRequestAt = 0;
 
@@ -49,7 +53,7 @@ function buildUrl(opts: PncpFetchOptions): string {
     tamanhoPagina: String(opts.tamanhoPagina ?? 50),
   });
   if (opts.uf) params.set('uf', opts.uf.toUpperCase());
-  return `${BASE_URL}/v1/contratacoes/${endpoint}?${params.toString()}`;
+  return `${baseUrl()}/v1/contratacoes/${endpoint}?${params.toString()}`;
 }
 
 /**
@@ -152,7 +156,8 @@ export async function fetchItensContratacao(
   ano: number,
   sequencial: number,
 ): Promise<unknown[]> {
-  const url = `${BASE_URL.replace('/api/consulta', '/api/pncp')}/v1/orgaos/${cnpj}/compras/${ano}/${sequencial}/itens`;
+  // Mesmo host allowlisted; path de publicação autenticada (best-effort).
+  const url = `${baseUrl().replace('/api/consulta', '/api/pncp')}/v1/orgaos/${encodeURIComponent(cnpj)}/compras/${ano}/${sequencial}/itens`;
   await throttle();
   try {
     const res = await fetch(url, {

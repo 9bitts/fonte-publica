@@ -2,8 +2,10 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { EmptyState, ErrorState, PageShell } from '@/components/ui';
+import { dbErrorMessage } from '@/lib/db-errors';
 import { prisma } from '@/lib/db';
 import { formatCentavos, formatDateBr, formatDateTimeBr } from '@/lib/format';
+import { safeHttpUrl } from '@/lib/security';
 
 export const dynamic = 'force-dynamic';
 
@@ -70,6 +72,8 @@ export default async function ContratacaoPage({ params }: Props) {
         ? { '@type': 'AdministrativeArea', name: c.ufSigla }
         : { '@type': 'Country', name: 'Brasil' },
     };
+
+    const origemUrl = safeHttpUrl(c.linkSistemaOrigem);
 
     return (
       <PageShell>
@@ -155,9 +159,9 @@ export default async function ContratacaoPage({ params }: Props) {
           </section>
         ) : null}
 
-        {c.linkSistemaOrigem ? (
+        {origemUrl ? (
           <p className="mt-4 text-sm">
-            <a href={c.linkSistemaOrigem} rel="noopener noreferrer" target="_blank">
+            <a href={origemUrl} rel="noopener noreferrer" target="_blank">
               Abrir no sistema de origem
             </a>
           </p>
@@ -219,13 +223,7 @@ export default async function ContratacaoPage({ params }: Props) {
   } catch (err) {
     return (
       <PageShell>
-        <ErrorState
-          message={
-            err instanceof Error
-              ? err.message
-              : 'Falha ao carregar contratação. Verifique o banco de dados.'
-          }
-        />
+        <ErrorState message={dbErrorMessage(err)} />
       </PageShell>
     );
   }

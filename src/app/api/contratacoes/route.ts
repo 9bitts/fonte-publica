@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { dbErrorMessage } from '@/lib/db-errors';
 import { rateLimit } from '@/lib/rate-limit';
 import { searchContratacoes } from '@/lib/search';
+import { clientIp } from '@/lib/security';
 import { buscaQuerySchema } from '@/lib/validators';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
-  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'anon';
+  const ip = clientIp(req.headers);
   const rl = rateLimit(`api:contratacoes:${ip}`, 60, 60_000);
   if (!rl.ok) {
     return NextResponse.json(
@@ -33,8 +35,7 @@ export async function GET(req: NextRequest) {
   } catch (err) {
     return NextResponse.json(
       {
-        error: 'Falha na busca',
-        detail: err instanceof Error ? err.message : String(err),
+        error: dbErrorMessage(err),
         items: [],
         nextCursor: null,
       },

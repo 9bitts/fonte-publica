@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { formatCentavos, formatDateBr } from '@/lib/format';
+import { rateLimit } from '@/lib/rate-limit';
 import { searchContratacoes } from '@/lib/search';
+import { clientIp } from '@/lib/security';
 import { getSiteUrl, wantsHtml } from '@/lib/site';
 import { buscaQuerySchema } from '@/lib/validators';
 
@@ -21,6 +23,18 @@ export async function GET(req: NextRequest) {
     const qs = req.nextUrl.searchParams.toString();
     const target = qs ? `/alertas?${qs}` : '/alertas';
     return NextResponse.redirect(new URL(target, req.url));
+  }
+
+  const ip = clientIp(req.headers);
+  const rl = rateLimit(`api:rss:${ip}`, 30, 60_000);
+  if (!rl.ok) {
+    return new NextResponse('Rate limit excedido', {
+      status: 429,
+      headers: {
+        'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)),
+        'Content-Type': 'text/plain; charset=utf-8',
+      },
+    });
   }
 
   const site = getSiteUrl(req);

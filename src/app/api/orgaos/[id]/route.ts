@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { dbErrorMessage } from '@/lib/db-errors';
 import { prisma } from '@/lib/db';
 import { rateLimit } from '@/lib/rate-limit';
+import { clientIp } from '@/lib/security';
 
 export const dynamic = 'force-dynamic';
 
 type Ctx = { params: Promise<{ id: string }> };
 
 export async function GET(req: NextRequest, ctx: Ctx) {
-  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'anon';
+  const ip = clientIp(req.headers);
   const rl = rateLimit(`api:orgao:${ip}`, 120, 60_000);
   if (!rl.ok) {
     return NextResponse.json({ error: 'Rate limit excedido' }, { status: 429 });
@@ -58,9 +60,6 @@ export async function GET(req: NextRequest, ctx: Ctx) {
       })),
     });
   } catch (err) {
-    return NextResponse.json(
-      { error: 'Falha ao carregar órgão', detail: String(err) },
-      { status: 503 },
-    );
+    return NextResponse.json({ error: dbErrorMessage(err) }, { status: 503 });
   }
 }

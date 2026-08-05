@@ -14,7 +14,13 @@ Atualizado na entrega inicial do produto.
 ## Busca / API
 
 - [ ] **`totalApprox`**: a busca por cursor não devolve total exato (evitar `COUNT(*)` caro em full-text). A UI mostra o tamanho da página.
-- [ ] **Rate limit em memória**: adequado a single-instance; em multi-instância cada processo tem seu bucket.
+- [ ] **Rate limit em memória**: adequado a single-instance; em multi-instância cada processo tem seu bucket. Middleware cobre `/busca` e `/rss`; APIs JSON também limitam.
+- [x] **Erros públicos**: `dbErrorMessage` não devolve detalhe bruto do Prisma; APIs sem campo `detail`.
+- [x] **Headers de segurança**: HSTS, X-Frame-Options, nosniff, Referrer-Policy, Permissions-Policy em `next.config.ts`.
+- [x] **URL do site**: em produção não confia em Host header para RSS (`getSiteUrl`).
+- [x] **Links externos**: `safeHttpUrl` só http(s) no detalhe da contratação.
+- [x] **PNCP allowlist**: `resolvePncpBaseUrl` só `pncp.gov.br`.
+
 - [ ] **Coluna `objeto_tsv`**: criada via SQL separado (`prisma/sql/fulltext.sql`); precisa rodar após migrate. Se ausente, a busca full-text falha com erro SQL (a UI mostra estado de erro).
 - [ ] **Preview `fullTextSearchPostgres`**: declarado no schema Prisma, mas a busca usa `$queryRaw` diretamente (mais controle sobre `ts_rank` / `plainto_tsquery`).
 
