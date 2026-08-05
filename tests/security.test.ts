@@ -48,7 +48,7 @@ describe('getSiteUrl', () => {
     const req = new Request('http://localhost', {
       headers: { host: 'evil.attacker', 'x-forwarded-host': 'evil.attacker' },
     });
-    expect(getSiteUrl(req)).toBe('https://fonte-publica-production.up.railway.app');
+    expect(getSiteUrl(req)).toBe('https://fontepublica.org');
     process.env.NODE_ENV = prev;
   });
 });

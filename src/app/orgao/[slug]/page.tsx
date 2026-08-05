@@ -8,6 +8,7 @@ import { buildContratacaoWhere, pickLocalFilters } from '@/lib/contratacao-filte
 import { dbErrorMessage } from '@/lib/db-errors';
 import { prisma } from '@/lib/db';
 import { formatCentavos } from '@/lib/format';
+import { getSiteUrl } from '@/lib/site';
 
 export const dynamic = 'force-dynamic';
 
@@ -62,7 +63,7 @@ export default async function OrgaoPage({ params, searchParams }: Props) {
       '@type': 'GovernmentOrganization',
       name: orgao.razaoSocial,
       taxID: orgao.cnpj,
-      url: `${process.env.NEXT_PUBLIC_SITE_URL ?? ''}/orgao/${orgao.slug}`,
+      url: `${getSiteUrl()}/orgao/${orgao.slug}`,
     };
 
     return (

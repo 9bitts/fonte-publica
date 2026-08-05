@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { UFS } from '@/lib/constants';
 import { prisma } from '@/lib/db';
+import { getSiteUrl } from '@/lib/site';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,7 +20,7 @@ export async function generateSitemaps() {
 export default async function sitemap(props: {
   id: Promise<number> | number;
 }): Promise<MetadataRoute.Sitemap> {
-  const site = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
+  const site = getSiteUrl();
   const id = typeof props.id === 'object' ? await props.id : props.id;
   const entries: MetadataRoute.Sitemap = [];
 

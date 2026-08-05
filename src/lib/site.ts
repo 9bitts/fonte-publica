@@ -14,7 +14,7 @@ export function getSiteUrl(req?: Request): string {
   const isProd = process.env.NODE_ENV === 'production';
   if (isProd) {
     // Sem URL configurada: fallback estável em vez de confiar no Host.
-    return 'https://fonte-publica-production.up.railway.app';
+    return 'https://fontepublica.org';
   }
 
   if (req) {

@@ -62,6 +62,14 @@ Opcional: `INGEST_DIAS`, `INGEST_UF`, `INGEST_LIMITE` nas variáveis do serviço
 
 **Importante:** o processo precisa sair ao terminar (já faz `prisma.$disconnect` + `process.exit`). Se um deploy ficar “Active”, a próxima execução do cron é pulada.
 
+## Domínio (fontepublica.org)
+
+1. No Railway, serviço **fonte-publica** → **Settings → Networking / Custom Domain** → adicione `fontepublica.org` e `www.fontepublica.org`
+2. No registrador do domínio, aponte DNS conforme o Railway indicar (CNAME ou A/ALIAS)
+3. Variables do serviço web: `NEXT_PUBLIC_SITE_URL=https://fontepublica.org`
+4. No Search Console, use a propriedade `https://fontepublica.org/` (ou domínio `fontepublica.org`) e envie `sitemap.xml`
+5. Opcional: redirecione o host antigo `*.up.railway.app` para o domínio novo
+
 ## Arquitetura
 
 ```

@@ -21,7 +21,7 @@ const mono = IBM_Plex_Mono({
   display: 'swap',
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://fontepublica.org';
 
 export const viewport: Viewport = {
   width: 'device-width',
