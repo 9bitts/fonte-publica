@@ -57,10 +57,13 @@ export default async function BuscaPage({ searchParams }: Props) {
       items = result.items;
       nextCursor = result.nextCursor;
     } catch (err) {
-      error =
-        err instanceof Error
-          ? err.message
-          : 'Não foi possível consultar o banco. Verifique se Postgres está no ar e a ingestão rodou.';
+      const raw = err instanceof Error ? err.message : String(err);
+      if (/DATABASE_URL|Can't reach database|P1001|banco de dados não configurado/i.test(raw)) {
+        error =
+          'Banco de dados indisponível. No Railway: Variables do serviço web → adicione DATABASE_URL (ou vincule o Postgres). Localmente: docker compose up -d e confira o .env.';
+      } else {
+        error = raw;
+      }
     }
   }
 

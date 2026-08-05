@@ -1,5 +1,6 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from './db';
+import { resolveDatabaseUrl } from './env';
 import { reaisToCentavos } from './format';
 import type { BuscaQuery } from './validators';
 
@@ -48,6 +49,12 @@ function decodeCursor(cursor: string): { ts: string; id: string } | null {
  * Paginação por cursor (dataPublicacao DESC, id DESC).
  */
 export async function searchContratacoes(query: BuscaQuery): Promise<BuscaResult> {
+  if (!resolveDatabaseUrl()) {
+    throw new Error(
+      'Banco de dados não configurado: defina DATABASE_URL no Railway (Variables → vincule o Postgres ao serviço web).',
+    );
+  }
+
   const limit = query.limit ?? 20;
   const valorMin = query.valorMin != null ? reaisToCentavos(query.valorMin) : null;
   const valorMax = query.valorMax != null ? reaisToCentavos(query.valorMax) : null;

@@ -41,6 +41,12 @@ export function SiteFooter() {
           </a>
           . Não substitui o portal oficial.
         </p>
+        <p>
+          Feito por{' '}
+          <a href="https://9bitts.dev/" rel="noopener noreferrer" target="_blank">
+            9bitts
+          </a>
+        </p>
         <p className="font-mono text-xs">Timezone: America/Sao_Paulo · valores em BRL</p>
       </div>
     </footer>

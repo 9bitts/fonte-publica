@@ -76,6 +76,13 @@ a:hover {
   text-decoration: underline;
 }
 
+/* CTAs em fundo accent: texto escuro (não herdar --link) */
+a.bg-accent,
+a.bg-accent:hover {
+  color: var(--bg);
+  text-decoration: none;
+}
+
 .font-display {
   font-family: var(--font-display);
 }
