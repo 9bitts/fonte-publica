@@ -5,6 +5,7 @@ import { ResultsTable } from '@/components/results-table';
 import { EmptyState, ErrorState, PageShell } from '@/components/ui';
 import { UFS } from '@/lib/constants';
 import { prisma } from '@/lib/db';
+import { dbErrorMessage } from '@/lib/db-errors';
 
 export const dynamic = 'force-dynamic';
 
@@ -123,7 +124,7 @@ export default async function UfPage({ params }: Props) {
   } catch (err) {
     return (
       <PageShell>
-        <ErrorState message={err instanceof Error ? err.message : 'Falha ao carregar UF'} />
+        <ErrorState message={dbErrorMessage(err)} />
       </PageShell>
     );
   }
