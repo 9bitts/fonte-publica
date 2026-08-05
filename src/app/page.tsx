@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import { ApoieProjeto } from '@/components/apoie-projeto';
 import { RssReadersGrid } from '@/components/rss-readers';
 import { SearchBox } from '@/components/search-box';
 import { PageShell } from '@/components/ui';
@@ -185,7 +186,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="py-10" aria-labelledby="leitores-rss">
+      <section className="border-b border-border py-10" aria-labelledby="leitores-rss">
         <h2 id="leitores-rss" className="font-display text-xl text-text">
           Baixe um leitor RSS
         </h2>
@@ -194,6 +195,10 @@ export default async function HomePage() {
           têm planos pagos opcionais).
         </p>
         <RssReadersGrid />
+      </section>
+
+      <section className="py-10" aria-labelledby="apoie-projeto">
+        <ApoieProjeto />
       </section>
     </PageShell>
   );

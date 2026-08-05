@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { AlertasBuilder } from '@/components/alertas-builder';
+import { ApoieProjeto } from '@/components/apoie-projeto';
 import { RssReadersGrid } from '@/components/rss-readers';
 import { PageShell } from '@/components/ui';
 import { getSiteUrl } from '@/lib/site';
@@ -42,6 +43,10 @@ export default async function AlertasPage({ searchParams }: Props) {
           Instale, abra o app e cole a URL do feed que você copiou acima.
         </p>
         <RssReadersGrid />
+      </section>
+
+      <section className="mt-10 border-t border-border pt-10" aria-labelledby="apoie-projeto">
+        <ApoieProjeto />
       </section>
     </PageShell>
   );
