@@ -2,6 +2,9 @@
   "name": "fonte-publica",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "prisma generate && next build",
@@ -19,17 +22,19 @@
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
+    "@tailwindcss/oxide-linux-x64-gnu": "4.3.3",
+    "@tailwindcss/postcss": "^4.3.3",
     "date-fns": "^4.4.0",
     "date-fns-tz": "^3.2.0",
     "next": "15.5.22",
     "prisma": "^6.19.3",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "tailwindcss": "^4.3.3",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@tailwindcss/postcss": "^4",
     "@types/node": "^20.19.43",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -39,9 +44,12 @@
     "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.9.6",
     "prettier-plugin-tailwindcss": "^0.8.1",
-    "tailwindcss": "^4",
     "tsx": "^4.23.5",
     "typescript": "^5",
     "vitest": "^4.1.10"
+  },
+  "optionalDependencies": {
+    "@tailwindcss/oxide-linux-x64-gnu": "4.3.3",
+    "@tailwindcss/oxide-linux-x64-musl": "4.3.3"
   }
 }

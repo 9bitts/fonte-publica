@@ -1,6 +1,5 @@
 # Railway / Nixpacks
-# Migrações rodam no `npm start` (db:deploy) porque o Postgres privado
-# costuma ser acessível só em runtime, não no build.
+# Node 22 via nixpacks.toml. Migrations no `npm start`.
 
 [build]
 builder = "NIXPACKS"
