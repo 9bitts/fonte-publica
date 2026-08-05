@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Thunderbird">
+  <rect width="64" height="64" rx="12" fill="#0a84ff"/>
+  <path fill="#ff9500" d="M14 38c6-14 16-22 30-24-2 8-1 14 3 20-7 1-13 4-18 9-4-1-9-2-15-5z"/>
+  <path fill="#fff" d="M20 28c4-1 8 0 11 2-3 2-7 3-11 3v-5z"/>
+</svg>

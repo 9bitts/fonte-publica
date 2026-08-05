@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { AlertasBuilder } from '@/components/alertas-builder';
+import { RssReadersGrid } from '@/components/rss-readers';
 import { PageShell } from '@/components/ui';
 import { getSiteUrl } from '@/lib/site';
 
@@ -32,6 +33,16 @@ export default async function AlertasPage({ searchParams }: Props) {
         e-mail, sem conta na Fonte Pública.
       </p>
       <AlertasBuilder initialQ={q} initialUf={uf} siteUrl={getSiteUrl()} />
+
+      <section className="mt-12 border-t border-border pt-10" aria-labelledby="leitores-rss">
+        <h2 id="leitores-rss" className="font-display text-xl text-text">
+          Não tem leitor ainda? Baixe um
+        </h2>
+        <p className="mt-2 max-w-2xl text-sm text-text-muted">
+          Instale, abra o app e cole a URL do feed que você copiou acima.
+        </p>
+        <RssReadersGrid />
+      </section>
     </PageShell>
   );
 }
