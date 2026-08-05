@@ -76,7 +76,7 @@ export function AlertasBuilder({ initialQ, initialUf, siteUrl }: Props) {
               name="q"
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              className="mt-1 w-full rounded-sm border border-border bg-bg px-3 py-2 text-sm text-text"
+              className="mt-1 min-h-11 w-full rounded-sm border border-border bg-bg px-3 py-2 text-base text-text sm:text-sm"
               placeholder="Ex.: software, merenda escolar, pavimentação…"
               autoComplete="off"
             />
@@ -93,7 +93,7 @@ export function AlertasBuilder({ initialQ, initialUf, siteUrl }: Props) {
               name="uf"
               value={uf}
               onChange={(e) => setUf(e.target.value)}
-              className="mt-1 w-full rounded-sm border border-border bg-bg px-3 py-2 text-sm text-text"
+              className="mt-1 min-h-11 w-full rounded-sm border border-border bg-bg px-3 py-2 text-base text-text sm:text-sm"
             >
               <option value="">Todos os estados</option>
               {Object.entries(UFS).map(([sigla, nome]) => (
@@ -131,7 +131,7 @@ export function AlertasBuilder({ initialQ, initialUf, siteUrl }: Props) {
               <button
                 type="button"
                 onClick={copyFeed}
-                className="shrink-0 rounded-sm bg-accent px-4 py-2 text-sm font-medium text-bg hover:bg-accent-dim"
+                className="min-h-11 shrink-0 rounded-sm bg-accent px-4 py-2.5 text-base font-medium text-bg hover:bg-accent-dim sm:text-sm"
               >
                 {copied ? 'Copiado!' : 'Copiar URL'}
               </button>

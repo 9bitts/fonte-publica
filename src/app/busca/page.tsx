@@ -71,7 +71,7 @@ export default async function BuscaPage({ searchParams }: Props) {
     <PageShell>
       <h1 className="font-display text-3xl font-semibold text-text">Busca</h1>
       <p className="mt-1 text-sm text-text-muted">
-        Full-text em português com ranking. Valores em reais nos filtros; persistidos em centavos.
+        Busca em português com filtros. Valores nos filtros em reais.
       </p>
 
       <div className="mt-6">
@@ -91,7 +91,7 @@ export default async function BuscaPage({ searchParams }: Props) {
                 id="uf"
                 name="uf"
                 defaultValue={data?.uf ?? ''}
-                className="mt-1 w-full rounded-sm border border-border bg-bg px-2 py-1.5"
+                className="mt-1 min-h-11 w-full rounded-sm border border-border bg-bg px-3 py-2 text-base sm:text-sm"
               >
                 <option value="">Todas</option>
                 {Object.entries(UFS).map(([sigla, nome]) => (
@@ -109,7 +109,7 @@ export default async function BuscaPage({ searchParams }: Props) {
                 id="municipio"
                 name="municipio"
                 defaultValue={data?.municipio ?? ''}
-                className="mt-1 w-full rounded-sm border border-border bg-bg px-2 py-1.5"
+                className="mt-1 min-h-11 w-full rounded-sm border border-border bg-bg px-3 py-2 text-base sm:text-sm"
               />
             </div>
             <div>
@@ -120,7 +120,7 @@ export default async function BuscaPage({ searchParams }: Props) {
                 id="modalidade"
                 name="modalidade"
                 defaultValue={data?.modalidade?.toString() ?? ''}
-                className="mt-1 w-full rounded-sm border border-border bg-bg px-2 py-1.5"
+                className="mt-1 min-h-11 w-full rounded-sm border border-border bg-bg px-3 py-2 text-base sm:text-sm"
               >
                 <option value="">Todas</option>
                 {Object.entries(MODALIDADES).map(([id, nome]) => (
@@ -138,7 +138,7 @@ export default async function BuscaPage({ searchParams }: Props) {
                 id="situacao"
                 name="situacao"
                 defaultValue={data?.situacao?.toString() ?? ''}
-                className="mt-1 w-full rounded-sm border border-border bg-bg px-2 py-1.5"
+                className="mt-1 min-h-11 w-full rounded-sm border border-border bg-bg px-3 py-2 text-base sm:text-sm"
               >
                 <option value="">Todas</option>
                 {Object.entries(SITUACOES).map(([id, nome]) => (
@@ -160,7 +160,7 @@ export default async function BuscaPage({ searchParams }: Props) {
                   min={0}
                   step="0.01"
                   defaultValue={data?.valorMin ?? ''}
-                  className="mt-1 w-full rounded-sm border border-border bg-bg px-2 py-1.5"
+                  className="mt-1 min-h-11 w-full rounded-sm border border-border bg-bg px-3 py-2 text-base sm:text-sm"
                 />
               </div>
               <div>
@@ -174,7 +174,7 @@ export default async function BuscaPage({ searchParams }: Props) {
                   min={0}
                   step="0.01"
                   defaultValue={data?.valorMax ?? ''}
-                  className="mt-1 w-full rounded-sm border border-border bg-bg px-2 py-1.5"
+                  className="mt-1 min-h-11 w-full rounded-sm border border-border bg-bg px-3 py-2 text-base sm:text-sm"
                 />
               </div>
             </div>
@@ -188,7 +188,7 @@ export default async function BuscaPage({ searchParams }: Props) {
                   name="de"
                   type="date"
                   defaultValue={data?.de ?? ''}
-                  className="mt-1 w-full rounded-sm border border-border bg-bg px-2 py-1.5"
+                  className="mt-1 min-h-11 w-full rounded-sm border border-border bg-bg px-3 py-2 text-base sm:text-sm"
                 />
               </div>
               <div>
@@ -200,13 +200,13 @@ export default async function BuscaPage({ searchParams }: Props) {
                   name="ate"
                   type="date"
                   defaultValue={data?.ate ?? ''}
-                  className="mt-1 w-full rounded-sm border border-border bg-bg px-2 py-1.5"
+                  className="mt-1 min-h-11 w-full rounded-sm border border-border bg-bg px-3 py-2 text-base sm:text-sm"
                 />
               </div>
             </div>
             <button
               type="submit"
-              className="w-full rounded-sm bg-accent px-3 py-2 text-sm font-medium text-bg hover:bg-accent-dim"
+              className="min-h-11 w-full rounded-sm bg-accent px-3 py-2.5 text-base font-medium text-bg hover:bg-accent-dim sm:text-sm"
             >
               Aplicar
             </button>

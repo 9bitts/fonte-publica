@@ -27,22 +27,25 @@ export function SearchBox({
       <label htmlFor="q" className="sr-only">
         Buscar contratações
       </label>
-      <div className="flex gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row">
         <input
           id="q"
           name="q"
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Ex.: software, merenda, obra rodoviária…"
-          className={`w-full rounded-sm border border-border bg-bg px-3 text-text placeholder:text-text-muted ${
-            large ? 'py-3 text-base' : 'py-2 text-sm'
+          enterKeyHint="search"
+          className={`min-h-11 w-full rounded-sm border border-border bg-bg px-3 text-base text-text placeholder:text-text-muted sm:text-sm ${
+            large ? 'sm:py-3 sm:text-base' : 'py-2.5'
           }`}
           autoComplete="off"
+          autoCapitalize="off"
+          autoCorrect="off"
         />
         <button
           type="submit"
-          className={`rounded-sm bg-accent px-4 font-medium text-bg hover:bg-accent-dim ${
-            large ? 'py-3' : 'py-2'
+          className={`min-h-11 shrink-0 rounded-sm bg-accent px-4 text-base font-medium text-bg hover:bg-accent-dim sm:text-sm ${
+            large ? 'sm:py-3' : 'py-2.5'
           }`}
         >
           Buscar

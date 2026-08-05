@@ -111,7 +111,7 @@ export default async function UfPage({ params }: Props) {
             <Link
               key={s}
               href={`/uf/${s}`}
-              className={`border px-2 py-1 no-underline ${
+              className={`inline-flex min-h-11 min-w-11 items-center justify-center border px-3 no-underline ${
                 s === upper ? 'border-accent text-text' : 'border-border text-text-muted'
               }`}
             >

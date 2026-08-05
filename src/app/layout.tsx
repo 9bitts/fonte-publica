@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Source_Sans_3, Source_Serif_4, IBM_Plex_Mono } from 'next/font/google';
 import './globals.css';
 
@@ -22,6 +22,16 @@ const mono = IBM_Plex_Mono({
 });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: [
+    { media: '(prefers-color-scheme: dark)', color: '#0f1215' },
+    { media: '(prefers-color-scheme: light)', color: '#f4f2ee' },
+  ],
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

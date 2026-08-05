@@ -60,9 +60,9 @@ export default async function HomePage() {
             Radar de licitações e contratos do PNCP
           </h1>
           <p className="mt-3 max-w-2xl text-base text-text-muted">
-            Indexamos contratações do Portal Nacional de Contratações Públicas para busca
-            full-text, filtros por local e modalidade, páginas por órgão/UF e alertas RSS por
-            palavra-chave — sem paywall e sem chute.
+            Indexamos contratações do Portal Nacional de Contratações Públicas para busca por
+            palavra-chave, filtros por local e modalidade, páginas por órgão/UF e alertas RSS —
+            sem paywall.
           </p>
           <div className="mt-6">
             <SearchBox large />
@@ -79,22 +79,21 @@ export default async function HomePage() {
         <div>
           <h2 className="font-display text-lg text-text">Busca em português</h2>
           <p className="mt-2 text-sm text-text-muted">
-            Ranking full-text (`ts_rank`) sobre o objeto da contratação, com filtros de UF,
-            município, modalidade, valor e período.
+            Encontre pelo objeto da contratação, com filtros de UF, município, modalidade, valor e
+            período.
           </p>
         </div>
         <div>
-          <h2 className="font-display text-lg text-text">Cauda longa SEO</h2>
+          <h2 className="font-display text-lg text-text">Páginas por local e órgão</h2>
           <p className="mt-2 text-sm text-text-muted">
-            Páginas estáticas por órgão, UF e município, com metadados, JSON-LD e sitemap
-            dinâmico.
+            Navegue por UF, município e órgão comprador — útil para acompanhar a sua região.
           </p>
         </div>
         <div>
           <h2 className="font-display text-lg text-text">Alerta via RSS</h2>
           <p className="mt-2 text-sm text-text-muted">
-            Monte um feed com `q` e `uf` e acompanhe novas contratações no leitor de sua
-            preferência — sem cadastro.
+            Monte um feed por palavra-chave e UF e acompanhe no Feedly ou outro leitor — sem
+            cadastro.
           </p>
         </div>
       </section>
