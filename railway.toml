@@ -1,9 +1,9 @@
-# Railway / Nixpacks
-# Node 22 via nixpacks.toml. Migrations no `npm start`.
+# Deploy via Dockerfile (Node 22 + Tailwind Oxide no Linux).
+# Migrations rodam no `npm start` (db:deploy).
 
 [build]
-builder = "NIXPACKS"
-buildCommand = "npm run build"
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
 
 [deploy]
 startCommand = "npm run start"
