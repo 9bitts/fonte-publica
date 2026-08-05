@@ -1,14 +1,19 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { LocalFiltersForm } from '@/components/local-filters';
 import { ResultsTable } from '@/components/results-table';
 import { EmptyState, ErrorState, PageShell } from '@/components/ui';
+import { buildContratacaoWhere, pickLocalFilters } from '@/lib/contratacao-filters';
 import { prisma } from '@/lib/db';
 import { formatCentavos } from '@/lib/format';
 
 export const dynamic = 'force-dynamic';
 
-type Props = { params: Promise<{ slug: string }> };
+type Props = {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -28,8 +33,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default async function OrgaoPage({ params }: Props) {
+export default async function OrgaoPage({ params, searchParams }: Props) {
   const { slug } = await params;
+  const filters = pickLocalFilters(await searchParams);
 
   try {
     const orgao = await prisma.orgao.findFirst({
@@ -41,8 +47,10 @@ export default async function OrgaoPage({ params }: Props) {
     });
     if (!orgao) notFound();
 
+    const where = buildContratacaoWhere({ orgaoId: orgao.id }, filters);
+
     const recentes = await prisma.contratacao.findMany({
-      where: { orgaoId: orgao.id },
+      where,
       orderBy: { dataPublicacao: 'desc' },
       take: 30,
       include: { orgao: { select: { id: true, razaoSocial: true, slug: true, cnpj: true } } },
@@ -72,10 +80,30 @@ export default async function OrgaoPage({ params }: Props) {
           {orgao._count.contratacoes.toLocaleString('pt-BR')} contratações indexadas
         </p>
 
+        <LocalFiltersForm
+          action={`/orgao/${orgao.slug}`}
+          de={filters.de}
+          ate={filters.ate}
+          aberto={filters.aberto ?? true}
+        />
+        <p className="mt-2 text-xs text-text-muted">
+          “Em aberto” = ainda dá para enviar proposta (prazo não encerrou e situação divulgada no
+          PNCP).
+        </p>
+
         <section className="mt-8">
-          <h2 className="font-display text-lg text-text">Contratações recentes</h2>
+          <h2 className="font-display text-lg text-text">
+            {filters.aberto ? 'Propostas em aberto' : 'Contratações'}
+          </h2>
           {recentes.length === 0 ? (
-            <EmptyState title="Vazio" description="Nenhuma contratação indexada para este órgão." />
+            <EmptyState
+              title="Nenhum resultado"
+              description={
+                filters.aberto
+                  ? 'Não há propostas em aberto com esses filtros. Troque o período ou escolha “Todas”.'
+                  : 'Nenhuma contratação indexada para este órgão com esses filtros.'
+              }
+            />
           ) : (
             <div className="mt-3">
               <ResultsTable
@@ -118,7 +146,7 @@ export default async function OrgaoPage({ params }: Props) {
         ) : null}
 
         <p className="mt-6 text-xs text-text-muted">
-          Maior valor recente:{' '}
+          Maior valor nesta lista:{' '}
           {recentes[0]
             ? formatCentavos(
                 recentes.reduce((max, c) => (c.valorEstimado > max ? c.valorEstimado : max), 0n),

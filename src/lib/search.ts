@@ -2,6 +2,7 @@ import { Prisma } from '@prisma/client';
 import { prisma } from './db';
 import { resolveDatabaseUrl } from './env';
 import { reaisToCentavos } from './format';
+import { nowSaoPaulo } from './contratacao-filters';
 import type { BuscaQuery } from './validators';
 
 export type ContratacaoListItem = {
@@ -90,6 +91,11 @@ export async function searchContratacoes(query: BuscaQuery): Promise<BuscaResult
   }
   if (query.ate) {
     conditions.push(Prisma.sql`"dataPublicacao" <= ${new Date(query.ate + 'T23:59:59-03:00')}`);
+  }
+  if (query.aberto) {
+    const now = nowSaoPaulo();
+    conditions.push(Prisma.sql`"situacaoId" = 1`);
+    conditions.push(Prisma.sql`"dataEncerramentoProposta" >= ${now}`);
   }
   if (cursor) {
     conditions.push(

@@ -1,13 +1,19 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { LocalFiltersForm } from '@/components/local-filters';
 import { ResultsTable } from '@/components/results-table';
 import { EmptyState, ErrorState, PageShell } from '@/components/ui';
+import { buildContratacaoWhere, pickLocalFilters } from '@/lib/contratacao-filters';
 import { prisma } from '@/lib/db';
+import { dbErrorMessage } from '@/lib/db-errors';
 
 export const dynamic = 'force-dynamic';
 
-type Props = { params: Promise<{ slug: string }> };
+type Props = {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -24,8 +30,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default async function MunicipioPage({ params }: Props) {
+export default async function MunicipioPage({ params, searchParams }: Props) {
   const { slug } = await params;
+  const filters = pickLocalFilters(await searchParams);
 
   try {
     const municipio = await prisma.municipio.findUnique({
@@ -34,8 +41,13 @@ export default async function MunicipioPage({ params }: Props) {
     });
     if (!municipio) notFound();
 
+    const where = buildContratacaoWhere(
+      { municipioCodigoIbge: municipio.codigoIbge },
+      filters,
+    );
+
     const recentes = await prisma.contratacao.findMany({
-      where: { municipioCodigoIbge: municipio.codigoIbge },
+      where,
       orderBy: { dataPublicacao: 'desc' },
       take: 40,
       include: { orgao: { select: { id: true, razaoSocial: true, slug: true, cnpj: true } } },
@@ -65,17 +77,36 @@ export default async function MunicipioPage({ params }: Props) {
         <p className="mt-2 text-sm text-text-muted">
           IBGE {municipio.codigoIbge} ·{' '}
           <Link href={`/uf/${municipio.ufSigla}`}>{municipio.uf.nome}</Link> ·{' '}
-          <Link href={`/busca?municipio=${encodeURIComponent(municipio.nome)}&uf=${municipio.ufSigla}`}>
+          <Link
+            href={`/busca?municipio=${encodeURIComponent(municipio.nome)}&uf=${municipio.ufSigla}`}
+          >
             Busca
           </Link>
         </p>
 
+        <LocalFiltersForm
+          action={`/municipio/${municipio.slug}`}
+          de={filters.de}
+          ate={filters.ate}
+          aberto={filters.aberto ?? true}
+        />
+        <p className="mt-2 text-xs text-text-muted">
+          “Em aberto” = ainda dá para enviar proposta (prazo não encerrou e situação divulgada no
+          PNCP).
+        </p>
+
         <section className="mt-8">
-          <h2 className="font-display text-lg text-text">Contratações</h2>
+          <h2 className="font-display text-lg text-text">
+            {filters.aberto ? 'Propostas em aberto' : 'Contratações'}
+          </h2>
           {recentes.length === 0 ? (
             <EmptyState
-              title="Vazio"
-              description="Nenhuma contratação indexada para este município."
+              title="Nenhum resultado"
+              description={
+                filters.aberto
+                  ? 'Não há propostas em aberto com esses filtros. Troque o período ou escolha “Todas”.'
+                  : 'Nenhuma contratação indexada para este município com esses filtros.'
+              }
             />
           ) : (
             <div className="mt-3">
@@ -103,7 +134,7 @@ export default async function MunicipioPage({ params }: Props) {
   } catch (err) {
     return (
       <PageShell>
-        <ErrorState message={err instanceof Error ? err.message : 'Falha ao carregar município'} />
+        <ErrorState message={dbErrorMessage(err)} />
       </PageShell>
     );
   }

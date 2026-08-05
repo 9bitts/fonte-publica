@@ -1,15 +1,20 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { LocalFiltersForm } from '@/components/local-filters';
 import { ResultsTable } from '@/components/results-table';
 import { EmptyState, ErrorState, PageShell } from '@/components/ui';
 import { UFS } from '@/lib/constants';
+import { buildContratacaoWhere, pickLocalFilters } from '@/lib/contratacao-filters';
 import { prisma } from '@/lib/db';
 import { dbErrorMessage } from '@/lib/db-errors';
 
 export const dynamic = 'force-dynamic';
 
-type Props = { params: Promise<{ sigla: string }> };
+type Props = {
+  params: Promise<{ sigla: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { sigla } = await params;
@@ -22,21 +27,26 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function UfPage({ params }: Props) {
+export default async function UfPage({ params, searchParams }: Props) {
   const { sigla } = await params;
   const upper = sigla.toUpperCase();
   if (!UFS[upper]) notFound();
 
+  const sp = await searchParams;
+  const filters = pickLocalFilters(sp);
+  const where = buildContratacaoWhere({ ufSigla: upper }, filters);
+
   try {
-    const [total, municipios, recentes] = await Promise.all([
+    const [total, totalFiltrado, municipios, recentes] = await Promise.all([
       prisma.contratacao.count({ where: { ufSigla: upper } }),
+      prisma.contratacao.count({ where }),
       prisma.municipio.findMany({
         where: { ufSigla: upper },
         orderBy: { nome: 'asc' },
         take: 40,
       }),
       prisma.contratacao.findMany({
-        where: { ufSigla: upper },
+        where,
         orderBy: { dataPublicacao: 'desc' },
         take: 30,
         include: { orgao: { select: { id: true, razaoSocial: true, slug: true, cnpj: true } } },
@@ -50,6 +60,11 @@ export default async function UfPage({ params }: Props) {
       spatialCoverage: { '@type': 'AdministrativeArea', name: UFS[upper] },
     };
 
+    const buscaParams = new URLSearchParams({ uf: upper });
+    if (filters.de) buscaParams.set('de', filters.de);
+    if (filters.ate) buscaParams.set('ate', filters.ate);
+    if (filters.aberto) buscaParams.set('aberto', '1');
+
     return (
       <PageShell>
         <script
@@ -60,15 +75,34 @@ export default async function UfPage({ params }: Props) {
           {UFS[upper]} <span className="text-text-muted">({upper})</span>
         </h1>
         <p className="mt-2 text-sm text-text-muted">
-          {total.toLocaleString('pt-BR')} contratações indexadas ·{' '}
-          <Link href={`/busca?uf=${upper}`}>Abrir na busca</Link> ·{' '}
+          {totalFiltrado.toLocaleString('pt-BR')} nesta lista
+          {total !== totalFiltrado
+            ? ` (${total.toLocaleString('pt-BR')} no total nesta UF)`
+            : ' indexadas'}
+          {' · '}
+          <Link href={`/busca?${buscaParams.toString()}`}>Abrir na busca</Link>
+          {' · '}
           <Link href={`/alertas?uf=${upper}`}>RSS</Link>
+        </p>
+
+        <LocalFiltersForm
+          action={`/uf/${upper}`}
+          de={filters.de}
+          ate={filters.ate}
+          aberto={filters.aberto ?? true}
+        />
+        <p className="mt-2 text-xs text-text-muted">
+          “Em aberto” = ainda dá para enviar proposta (prazo não encerrou e situação divulgada no
+          PNCP).
         </p>
 
         <section className="mt-8">
           <h2 className="font-display text-lg text-text">Municípios</h2>
           {municipios.length === 0 ? (
-            <EmptyState title="Sem municípios" description="Ainda não há municípios indexados nesta UF." />
+            <EmptyState
+              title="Sem municípios"
+              description="Ainda não há municípios indexados nesta UF. Eles aparecem após a ingestão de contratações."
+            />
           ) : (
             <ul className="mt-3 columns-2 gap-4 text-sm md:columns-3">
               {municipios.map((m) => (
@@ -81,9 +115,18 @@ export default async function UfPage({ params }: Props) {
         </section>
 
         <section className="mt-8">
-          <h2 className="font-display text-lg text-text">Recentes</h2>
+          <h2 className="font-display text-lg text-text">
+            {filters.aberto ? 'Propostas em aberto' : 'Contratações'}
+          </h2>
           {recentes.length === 0 ? (
-            <EmptyState title="Vazio" description="Nenhuma contratação indexada nesta UF." />
+            <EmptyState
+              title="Nenhum resultado"
+              description={
+                filters.aberto
+                  ? 'Não há propostas em aberto com esses filtros. Troque o período ou escolha “Todas”.'
+                  : 'Nenhuma contratação indexada nesta UF com esses filtros.'
+              }
+            />
           ) : (
             <div className="mt-3">
               <ResultsTable

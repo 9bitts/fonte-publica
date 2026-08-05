@@ -41,6 +41,7 @@ export default async function BuscaPage({ searchParams }: Props) {
     valorMax: pick(sp, 'valorMax'),
     de: pick(sp, 'de'),
     ate: pick(sp, 'ate'),
+    aberto: pick(sp, 'aberto'),
     cursor: pick(sp, 'cursor'),
     limit: pick(sp, 'limit') ?? '20',
   };
@@ -181,7 +182,7 @@ export default async function BuscaPage({ searchParams }: Props) {
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <label htmlFor="de" className="block text-xs text-text-muted">
-                  De
+                  Publicadas de
                 </label>
                 <input
                   id="de"
@@ -193,7 +194,7 @@ export default async function BuscaPage({ searchParams }: Props) {
               </div>
               <div>
                 <label htmlFor="ate" className="block text-xs text-text-muted">
-                  Até
+                  até
                 </label>
                 <input
                   id="ate"
@@ -203,6 +204,23 @@ export default async function BuscaPage({ searchParams }: Props) {
                   className="mt-1 min-h-11 w-full rounded-sm border border-border bg-bg px-3 py-2 text-base sm:text-sm"
                 />
               </div>
+            </div>
+            <div>
+              <label htmlFor="aberto" className="block text-xs text-text-muted">
+                Situação das propostas
+              </label>
+              <select
+                id="aberto"
+                name="aberto"
+                defaultValue={data?.aberto === false ? '0' : '1'}
+                className="mt-1 min-h-11 w-full rounded-sm border border-border bg-bg px-3 py-2 text-base sm:text-sm"
+              >
+                <option value="1">Só em aberto</option>
+                <option value="0">Todas</option>
+              </select>
+              <p className="mt-1 text-xs text-text-muted">
+                Em aberto = prazo de proposta ainda vigente e situação divulgada no PNCP.
+              </p>
             </div>
             <button
               type="submit"
@@ -221,7 +239,11 @@ export default async function BuscaPage({ searchParams }: Props) {
           {!error && items.length === 0 ? (
             <EmptyState
               title="Nenhum resultado"
-              description="Não há contratações indexadas para esses filtros. Ajuste a busca ou rode a ingestão."
+              description={
+                data?.aberto
+                  ? 'Não há propostas em aberto com esses filtros. Amplie o período ou escolha “Todas”.'
+                  : 'Não há contratações indexadas para esses filtros. Ajuste a busca ou rode a ingestão.'
+              }
             />
           ) : null}
           {!error && items.length > 0 ? (

@@ -21,6 +21,11 @@ export const buscaQuerySchema = z.object({
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/)
     .optional(),
+  /** Só propostas em aberto (default true). Use aberto=0 para listar todas. */
+  aberto: z
+    .union([z.literal('1'), z.literal('0'), z.literal('true'), z.literal('false')])
+    .optional()
+    .transform((v) => (v === undefined ? true : v === '1' || v === 'true')),
   cursor: z.string().optional(),
   limit: z.coerce.number().int().min(1).max(50).default(20),
 });

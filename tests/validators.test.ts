@@ -6,6 +6,7 @@ describe('buscaQuerySchema', () => {
     const r = buscaQuerySchema.parse({ q: 'software' });
     expect(r.q).toBe('software');
     expect(r.limit).toBe(20);
+    expect(r.aberto).toBe(true);
   });
 
   it('normaliza UF e valida modalidade', () => {
@@ -13,6 +14,11 @@ describe('buscaQuerySchema', () => {
     expect(r.uf).toBe('SP');
     expect(r.modalidade).toBe(6);
     expect(r.valorMin).toBe(1000);
+  });
+
+  it('permite desligar filtro em aberto', () => {
+    const r = buscaQuerySchema.parse({ aberto: '0' });
+    expect(r.aberto).toBe(false);
   });
 
   it('rejeita UF inválida', () => {
