@@ -1,18 +1,48 @@
-# Notas da API de Consulta do PNCP
+# Notas da API PNCP — Fonte Pública
 
-Fonte oficial consultada antes da implementação:
+Fontes oficiais usadas na implementação:
 
-- Swagger: https://pncp.gov.br/api/consulta/swagger-ui/index.html
-- Base URL: `https://pncp.gov.br/api/consulta`
-- Manual: *Manual PNCP API Consultas – Versão 1.0* (gov.br)
+| Documento | URL |
+| --- | --- |
+| Manual de Integração PNCP v. 2.5 | https://pncp.gov.br/manual/pt-br/latest/index.html |
+| Cópia local (PDF) | `docs/manual-integracao-pncp-v2.5.pdf` |
+| Swagger API de **Consulta** (leitura pública) | https://pncp.gov.br/api/consulta/swagger-ui/index.html |
+| Swagger API de **Integração** (manutenção) | https://pncp.gov.br/api/pncp/swagger-ui/index.html |
 
-## Endpoints usados
+## O que o manual diz (v2.5 §5.4)
+
+> O acesso ao Portal de consultas é **público**. Já as APIs de manutenção (inserção, retificação ou exclusão) requerem autenticação/autorização (JWT via `POST /api/pncp/v1/usuarios/login`), após credenciamento no MGI.
+
+**Fonte Pública só consome a API de consulta.** Não publica dados no PNCP; portanto:
+
+- **não** usa login/senha/JWT
+- **não** usa `https://pncp.gov.br/api/pncp` como base da ingestão
+- usa `https://pncp.gov.br/api/consulta` (variável `PNCP_BASE_URL`)
+
+## Ambientes (Manual §5)
+
+| Ambiente | Integração (`/api/pncp`) | Consulta (`/api/consulta`) |
+| --- | --- | --- |
+| Homologação | `https://treina.pncp.gov.br/api/pncp` | `https://treina.pncp.gov.br/api/consulta` |
+| Produção | `https://pncp.gov.br/api/pncp` | `https://pncp.gov.br/api/consulta` |
+
+## Configuração no Railway / `.env`
+
+```env
+PNCP_BASE_URL=https://pncp.gov.br/api/consulta
+PNCP_RATE_LIMIT_MS=350
+PNCP_MAX_RETRIES=5
+```
+
+Não adicione `PNCP_LOGIN` / `PNCP_SENHA` neste produto — credenciais de integração são para plataformas que **enviam** contratações ao PNCP.
+
+## Endpoint de ingestão
 
 ### `GET /v1/contratacoes/publicacao`
 
-Contratações por data de publicação.
+Base: `${PNCP_BASE_URL}` → `https://pncp.gov.br/api/consulta/v1/contratacoes/publicacao`
 
-Parâmetros obrigatórios (manual §6.3):
+Parâmetros obrigatórios (Manual de Consultas / Swagger consulta):
 
 | Campo | Formato | Obrigatório |
 | --- | --- | --- |
@@ -23,37 +53,30 @@ Parâmetros obrigatórios (manual §6.3):
 
 Opcionais: `uf`, `codigoMunicipioIbge`, `cnpj`, `codigoUnidadeAdministrativa`, `idUsuario`, `codigoModoDisputa`, `tamanhoPagina` (máx. 500; default 50).
 
-Campos de retorno relevantes mapeados no client:
+Campos de retorno mapeados no client: ver `src/lib/validators.ts` (`pncpContratacaoSchema`).
 
-- `numeroControlePNCP`, `numeroCompra`, `anoCompra`, `processo`, `sequencialCompra`
-- `modalidadeId`, `modalidadeNome`, `modoDisputaId`, `modoDisputaNome`
-- `situacaoCompraId`, `situacaoCompraNome`, `objetoCompra`, `informacaoComplementar`, `srp`
-- `valorTotalEstimado`, `valorTotalHomologado`
-- `dataAberturaProposta`, `dataEncerramentoProposta`, `dataPublicacaoPncp`, `dataInclusao`, `dataAtualizacao`
-- `orgaoEntidade.{cnpj,razaosocial|razaoSocial,poderId,esferaId}`
-- `unidadeOrgao.{codigoUnidade,nomeUnidade,codigoIbge,municipioNome,ufSigla,ufNome}`
-- `linkSistemaOrigem`, `usuarioNome`
-
-Envelope de paginação: `data`, `totalRegistros`, `totalPaginas`, `numeroPagina`, `paginasRestantes`, `empty`.
+Envelope: `data`, `totalRegistros`, `totalPaginas`, `numeroPagina`, `paginasRestantes`, `empty`.
 
 ### `GET /v1/contratacoes/atualizacao`
 
-Listado no Swagger (contratações por data de atualização). Mesma forma geral de parâmetros. Usado como fallback opcional; a ingestão padrão usa `publicacao`.
+Mesma família; ingestão padrão usa `publicacao`.
+
+## Domínios (Manual §7) usados no produto
+
+Modalidades (códigos 1–13) e situações da contratação (1–4) estão em `src/lib/constants.ts`, alinhados ao manual.
 
 ## Endpoints / comportamentos problemáticos
 
 | Tentativa | Resultado | Ação |
 | --- | --- | --- |
-| `GET .../publicacao` (2026-03-01..02, modalidade 6) | HTTP **504** Gateway Time-out (~72s) | Registrado; client faz retry com backoff exponencial (máx. 5) |
-| `GET .../publicacao` (2026-08-01, modalidade 8) | **timeout** de cliente (60s) | Idem; reduzir janela de datas e `tamanhoPagina` mitiga |
-| `GET .../atualizacao` | timeout intermitente | Documentado; não bloqueia o produto |
-| `GET /api/pncp/v1/orgaos/{cnpj}/compras/{ano}/{seq}/itens` | pode exigir auth ou retornar erro | Itens são best-effort; falha não aborta ingestão de contratações |
-| OpenAPI `GET /api/consulta/v3/api-docs` | HTTP **500** no momento da implementação | Schema inferido do manual + amostragens quando disponíveis |
+| `GET .../publicacao` | HTTP **504** / timeout frequentes | Retry com backoff (máx. 5); janelas curtas de data |
+| `GET /api/pncp/.../itens` | pode exigir auth ou falhar | Best-effort; UI mostra vazio se indisponível |
+| OpenAPI `GET /api/consulta/v3/api-docs` | HTTP **500** intermitente | Schema via manual + Swagger UI |
 
 ## Limitações operacionais
 
-1. A API **exige** `codigoModalidadeContratacao` — não há endpoint público de “todas as modalidades” em uma chamada. A ingestão itera as 13 modalidades.
-2. Rate limit não documentado formalmente; usamos ~350 ms entre requests e retries em 429/5xx.
-3. Timeouts e 504 são frequentes em horários de pico; o checkpoint em `IngestRun` permite retomar.
-4. Valores monetários na API vêm em reais (decimal); persistimos em **centavos** (`bigint`).
-5. Datas de proposta estão em horário de Brasília (manual); parseamos e exibimos com timezone `America/Sao_Paulo`.
+1. A API de publicação **exige** `codigoModalidadeContratacao` — a ingestão itera as 13 modalidades.
+2. Rate limit não documentado formalmente; usamos ~350 ms entre requests.
+3. Valores monetários na API vêm em reais; persistimos em **centavos** (`bigint`).
+4. Datas de proposta: horário de Brasília; exibimos com `America/Sao_Paulo`.
+5. Protocolo: REST/JSON (Manual §4). Charset de headers ISO-8859-1; payloads UTF-8.

@@ -36,7 +36,23 @@ export function SiteFooter() {
           <a href="https://pncp.gov.br" rel="noopener noreferrer" target="_blank">
             PNCP
           </a>
-          . Não substitui o portal oficial.
+          . Não substitui o portal oficial. Consulta pública conforme o{' '}
+          <a
+            href="https://pncp.gov.br/manual/pt-br/latest/index.html"
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            Manual de Integração
+          </a>{' '}
+          e a{' '}
+          <a
+            href="https://pncp.gov.br/api/consulta/swagger-ui/index.html"
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            API de Consulta
+          </a>
+          .
         </p>
         <p>
           Feito por{' '}
