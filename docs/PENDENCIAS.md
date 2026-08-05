@@ -30,7 +30,8 @@ Atualizado na entrega inicial do produto.
 - [ ] **Testes de upsert contra Postgres**: a suite Vitest cobre chaves naturais/normalização sem DB. Não há teste de integração E2E da ingestão (dependeria de PNCP online).
 - [ ] **Observabilidade**: logs JSON no stdout da ingestão; sem métricas/Prometheus.
 - [ ] **Autenticação / contas**: propositalmente fora de escopo (alertas só via RSS).
-- [ ] **Deploy**: sem Dockerfile de app / IaC — só Compose do Postgres local.
+- [x] **Deploy**: Dockerfile + `railway.toml` (web) e `railway.ingest.toml` (Cron diário). Ainda falta criar o segundo serviço no dashboard Railway se ainda não existir.
+- [ ] **Cron em produção**: conferir no Railway se o serviço de ingestão está com schedule `0 11 * * *`, `restartPolicyType=NEVER` e `DATABASE_URL` vinculada.
 
 ## Dados em produção
 

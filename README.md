@@ -37,7 +37,7 @@ npm run ingest -- --desde=2026-08-01 --ate=2026-08-03 --uf=SP
 npm run ingest -- --desde=2026-08-01 --modalidade=6
 ```
 
-Flags: `--desde`, `--ate`, `--uf`, `--limite`, `--modalidade`.
+Flags: `--desde`, `--ate`, `--dias`, `--uf`, `--limite`, `--modalidade`.
 
 O script:
 
@@ -48,6 +48,19 @@ O script:
 5. grava checkpoint em `IngestRun`
 
 Rodar duas vezes com os mesmos parâmetros **não duplica** registros.
+
+### Ingestão automática no Railway (Cron)
+
+O site **não** puxa o PNCP sozinho: um serviço Cron diário roda `npm run ingest:cron` (últimos 2 dias, todas as modalidades) e encerra.
+
+1. No projeto Railway: **New** → mesmo repositório GitHub
+2. **Settings → Config-as-code** → arquivo `railway.ingest.toml`
+3. **Variables**: `DATABASE_URL` = referência ao Postgres (igual ao serviço web); `PNCP_BASE_URL=https://pncp.gov.br/api/consulta`
+4. Confirme **Cron Schedule** `0 11 * * *` (08:00 America/Sao_Paulo) e **Restart Policy** = Never
+
+Opcional: `INGEST_DIAS`, `INGEST_UF`, `INGEST_LIMITE` nas variáveis do serviço Cron.
+
+**Importante:** o processo precisa sair ao terminar (já faz `prisma.$disconnect` + `process.exit`). Se um deploy ficar “Active”, a próxima execução do cron é pulada.
 
 ## Arquitetura
 
@@ -76,6 +89,7 @@ scripts/ingest.ts  ──►  Prisma upsert  ──►  PostgreSQL
 | `npm run lint` | ESLint |
 | `npm test` | Vitest |
 | `npm run ingest` | Ingestão PNCP |
+| `npm run ingest:cron` | Ingestão dos últimos 2 dias (Cron Railway) |
 | `npm run format` | Prettier |
 
 ## Limitações conhecidas

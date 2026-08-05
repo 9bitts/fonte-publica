@@ -14,6 +14,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "ingest": "tsx scripts/ingest.ts",
+    "ingest:cron": "tsx scripts/ingest.ts --dias=2",
     "db:up": "docker compose up -d",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy && prisma db execute --file prisma/sql/fulltext.sql --schema prisma/schema.prisma",

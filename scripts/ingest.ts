@@ -4,13 +4,19 @@
  *
  * Uso:
  *   npx tsx scripts/ingest.ts --desde=2026-08-01 [--uf=SP] [--limite=100]
+ *   npx tsx scripts/ingest.ts --dias=2
+ *   npm run ingest:cron   # pensado para Railway Cron (env INGEST_*)
  *
  * Flags:
- *   --desde=YYYY-MM-DD   data inicial (obrigatória)
+ *   --desde=YYYY-MM-DD   data inicial (se omitida: hoje − --dias ou 7)
  *   --ate=YYYY-MM-DD     data final (default: hoje America/Sao_Paulo)
+ *   --dias=N             janela relativa (default 7 se sem --desde; cron usa 2)
  *   --uf=XX              filtra UF
  *   --limite=N           para após N registros processados
  *   --modalidade=N       só uma modalidade (default: todas de MODALIDADES_INGESTAO)
+ *
+ * Env (úteis no Cron Railway; flags CLI têm prioridade):
+ *   INGEST_DIAS, INGEST_DESDE, INGEST_ATE, INGEST_UF, INGEST_LIMITE, INGEST_MODALIDADE
  */
 import { subDays } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
@@ -26,9 +32,20 @@ function parseArgs(argv: string[]) {
   for (const arg of argv) {
     if (!arg.startsWith('--')) continue;
     const [k, v] = arg.slice(2).split('=');
-    flags[k] = v === undefined ? true : v;
+    flags[k!] = v === undefined ? true : v;
   }
   return flags;
+}
+
+function flagOrEnv(
+  flags: Record<string, string | boolean>,
+  flag: string,
+  envName: string,
+): string | undefined {
+  const f = flags[flag];
+  if (typeof f === 'string' && f.length > 0) return f;
+  const e = process.env[envName];
+  return e && e.length > 0 ? e : undefined;
 }
 
 function parseDateFlag(value: string | undefined, fallback: Date): Date {
@@ -53,15 +70,22 @@ async function ensureFullText() {
 async function main() {
   const flags = parseArgs(process.argv.slice(2));
   const nowSp = toZonedTime(new Date(), TIMEZONE);
-  const desde = parseDateFlag(
-    typeof flags.desde === 'string' ? flags.desde : undefined,
-    subDays(nowSp, 7),
-  );
-  const ate = parseDateFlag(typeof flags.ate === 'string' ? flags.ate : undefined, nowSp);
-  const uf = typeof flags.uf === 'string' ? flags.uf.toUpperCase() : undefined;
-  const limite = typeof flags.limite === 'string' ? Number(flags.limite) : undefined;
-  const modalidadeFiltro =
-    typeof flags.modalidade === 'string' ? Number(flags.modalidade) : undefined;
+
+  const diasRaw = flagOrEnv(flags, 'dias', 'INGEST_DIAS');
+  const dias = diasRaw != null ? Number(diasRaw) : undefined;
+  if (dias != null && (!Number.isFinite(dias) || dias < 0 || dias > 365)) {
+    throw new Error(`--dias / INGEST_DIAS inválido: ${diasRaw}`);
+  }
+
+  const desdeStr = flagOrEnv(flags, 'desde', 'INGEST_DESDE');
+  const ateStr = flagOrEnv(flags, 'ate', 'INGEST_ATE');
+  const desde = parseDateFlag(desdeStr, subDays(nowSp, dias ?? 7));
+  const ate = parseDateFlag(ateStr, nowSp);
+  const uf = flagOrEnv(flags, 'uf', 'INGEST_UF')?.toUpperCase();
+  const limiteRaw = flagOrEnv(flags, 'limite', 'INGEST_LIMITE');
+  const limite = limiteRaw != null ? Number(limiteRaw) : undefined;
+  const modalidadeRaw = flagOrEnv(flags, 'modalidade', 'INGEST_MODALIDADE');
+  const modalidadeFiltro = modalidadeRaw != null ? Number(modalidadeRaw) : undefined;
 
   const dataInicial = toAaaammdd(desde);
   const dataFinal = toAaaammdd(ate);
@@ -69,7 +93,14 @@ async function main() {
     ? [modalidadeFiltro]
     : [...MODALIDADES_INGESTAO];
 
-  logger.info('ingest_start', { dataInicial, dataFinal, uf, limite, modalidades });
+  logger.info('ingest_start', {
+    dataInicial,
+    dataFinal,
+    uf,
+    limite,
+    dias: dias ?? (desdeStr ? null : 7),
+    modalidades,
+  });
 
   await ensureFullText();
 
@@ -191,4 +222,12 @@ async function main() {
   }
 }
 
-main();
+main()
+  .catch((err) => {
+    console.error(err);
+    process.exitCode = 1;
+  })
+  .finally(() => {
+    // Garante saída limpa para o Cron Railway (sem handles abertos).
+    process.exit(process.exitCode ?? 0);
+  });

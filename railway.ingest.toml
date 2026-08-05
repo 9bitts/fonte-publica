@@ -1,0 +1,18 @@
+# Serviço Cron de ingestão PNCP (serviço separado do web no Railway).
+#
+# No dashboard Railway:
+# 1. New → GitHub Repo → mesmo repositório fonte-publica
+# 2. Settings → Config-as-code → Railway Config File = railway.ingest.toml
+# 3. Variables: vincule DATABASE_URL ao Postgres (+ PNCP_BASE_URL se quiser)
+# 4. Opcional: INGEST_DIAS=2 (já é o default do npm run ingest:cron)
+#
+# Cron em UTC: 0 11 * * * = todos os dias às 08:00 America/Sao_Paulo.
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+startCommand = "npm run ingest:cron"
+restartPolicyType = "NEVER"
+cronSchedule = "0 11 * * *"
