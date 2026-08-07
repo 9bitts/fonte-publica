@@ -23,7 +23,7 @@ export type PncpPageResult = {
 };
 
 const RATE_LIMIT_MS = Number(process.env.PNCP_RATE_LIMIT_MS ?? 350);
-const MAX_RETRIES = Number(process.env.PNCP_MAX_RETRIES ?? 5);
+const MAX_RETRIES = Number(process.env.PNCP_MAX_RETRIES ?? 8);
 
 function baseUrl(): string {
   return resolvePncpBaseUrl();
@@ -41,6 +41,14 @@ async function throttle() {
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/** Backoff mais longo para 504 — o gateway do PNCP costuma ficar instável por minutos. */
+function retryBackoffMs(attempt: number, status?: number): number {
+  if (status === 504) {
+    return Math.min(90_000, 3_000 * 2 ** (attempt - 1));
+  }
+  return Math.min(30_000, 500 * 2 ** attempt);
 }
 
 function buildUrl(opts: PncpFetchOptions): string {
@@ -91,9 +99,10 @@ export async function fetchContratacoesPage(opts: PncpFetchOptions): Promise<Pnc
       }
 
       if (res.status === 429 || res.status >= 500) {
-        const backoff = Math.min(30_000, 500 * 2 ** attempt);
+        lastError = new Error(`PNCP HTTP ${res.status} após ${attempt} tentativa(s)`);
+        const backoff = retryBackoffMs(attempt, res.status);
         logger.warn('pncp_retry', { status: res.status, attempt, backoff, url });
-        await sleep(backoff);
+        if (attempt < MAX_RETRIES) await sleep(backoff);
         continue;
       }
 
@@ -135,14 +144,14 @@ export async function fetchContratacoesPage(opts: PncpFetchOptions): Promise<Pnc
       };
     } catch (err) {
       lastError = err;
-      const backoff = Math.min(30_000, 500 * 2 ** attempt);
+      const backoff = retryBackoffMs(attempt);
       logger.warn('pncp_fetch_error', {
         attempt,
         backoff,
         error: err instanceof Error ? err.message : String(err),
         url,
       });
-      await sleep(backoff);
+      if (attempt < MAX_RETRIES) await sleep(backoff);
     }
   }
 

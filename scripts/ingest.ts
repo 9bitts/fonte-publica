@@ -117,6 +117,7 @@ async function main() {
   let processados = 0;
   let upserted = 0;
   let erros = 0;
+  const modalidadesFalhas: number[] = [];
 
   try {
     for (let mi = 0; mi < modalidades.length; mi++) {
@@ -124,83 +125,134 @@ async function main() {
       let pagina = 1;
       let totalPaginas = 1;
 
-      while (pagina <= totalPaginas) {
-        if (limite != null && processados >= limite) {
-          logger.info('ingest_limite_atingido', { processados, limite });
-          break;
-        }
-
-        const page = await fetchContratacoesPage({
-          dataInicial,
-          dataFinal,
-          codigoModalidadeContratacao: modalidadeId,
-          uf,
-          pagina,
-          tamanhoPagina: 50,
-          endpoint: 'publicacao',
-        });
-
-        totalPaginas = Math.max(page.totalPaginas || 1, 1);
-
-        for (const item of page.items) {
-          if (limite != null && processados >= limite) break;
-          try {
-            const result = await upsertContratacao(item);
-            processados += 1;
-            if (result.created) upserted += 1;
-            else upserted += 1; // update também conta como upsert
-          } catch (err) {
-            erros += 1;
-            logger.error('ingest_item_error', {
-              numeroControlePNCP: item.numeroControlePNCP,
-              error: err instanceof Error ? err.message : String(err),
-            });
+      try {
+        while (pagina <= totalPaginas) {
+          if (limite != null && processados >= limite) {
+            logger.info('ingest_limite_atingido', { processados, limite });
+            break;
           }
-        }
 
+          const page = await fetchContratacoesPage({
+            dataInicial,
+            dataFinal,
+            codigoModalidadeContratacao: modalidadeId,
+            uf,
+            pagina,
+            tamanhoPagina: 50,
+            endpoint: 'publicacao',
+          });
+
+          totalPaginas = Math.max(page.totalPaginas || 1, 1);
+
+          for (const item of page.items) {
+            if (limite != null && processados >= limite) break;
+            try {
+              const result = await upsertContratacao(item);
+              processados += 1;
+              if (result.created) upserted += 1;
+              else upserted += 1; // update também conta como upsert
+            } catch (err) {
+              erros += 1;
+              logger.error('ingest_item_error', {
+                numeroControlePNCP: item.numeroControlePNCP,
+                error: err instanceof Error ? err.message : String(err),
+              });
+            }
+          }
+
+          await prisma.ingestRun.update({
+            where: { id: run.id },
+            data: {
+              paginaAtual: pagina,
+              totalPaginas,
+              totalRegistros: page.totalRegistros,
+              processados,
+              upserted,
+              erros,
+              modalidadeId,
+              checkpoint: { modalidades, modalidadeIdx: mi, pagina, modalidadeId },
+            },
+          });
+
+          logger.info('ingest_page', {
+            modalidadeId,
+            pagina,
+            totalPaginas,
+            items: page.items.length,
+            processados,
+            erros,
+          });
+
+          if (page.empty || page.items.length === 0) break;
+          pagina += 1;
+        }
+      } catch (err) {
+        // PNCP 504/5xx intermitente: não derruba o cron inteiro — segue nas demais modalidades.
+        erros += 1;
+        modalidadesFalhas.push(modalidadeId);
+        logger.error('ingest_modalidade_skip', {
+          modalidadeId,
+          pagina,
+          error: err instanceof Error ? err.message : String(err),
+        });
         await prisma.ingestRun.update({
           where: { id: run.id },
           data: {
-            paginaAtual: pagina,
-            totalPaginas,
-            totalRegistros: page.totalRegistros,
             processados,
             upserted,
             erros,
             modalidadeId,
-            checkpoint: { modalidades, modalidadeIdx: mi, pagina, modalidadeId },
+            checkpoint: {
+              modalidades,
+              modalidadeIdx: mi,
+              pagina,
+              modalidadeId,
+              lastError: err instanceof Error ? err.message : String(err),
+            },
           },
         });
-
-        logger.info('ingest_page', {
-          modalidadeId,
-          pagina,
-          totalPaginas,
-          items: page.items.length,
-          processados,
-          erros,
-        });
-
-        if (page.empty || page.items.length === 0) break;
-        pagina += 1;
       }
 
       if (limite != null && processados >= limite) break;
     }
 
+    const parcial = modalidadesFalhas.length > 0;
+    const allFailed = parcial && modalidadesFalhas.length === modalidades.length && processados === 0;
+
     await prisma.ingestRun.update({
       where: { id: run.id },
       data: {
-        status: 'completed',
+        status: allFailed ? 'failed' : parcial ? 'partial' : 'completed',
         processados,
         upserted,
         erros,
         finishedAt: new Date(),
-        mensagem: 'ok',
+        mensagem: allFailed
+          ? `todas as modalidades falharam: ${modalidadesFalhas.join(',')}`
+          : parcial
+            ? `ok com skips: modalidades ${modalidadesFalhas.join(',')}`
+            : 'ok',
       },
     });
 
-    logger.info('ingest_done', { runId: run.id, processados, upserted, erros });
+    if (allFailed) {
+      logger.error('ingest_failed', {
+        error: `todas as modalidades falharam: ${modalidadesFalhas.join(',')}`,
+        processados,
+        erros,
+      });
+      process.exitCode = 1;
+    } else {
+      logger.info('ingest_done', {
+        runId: run.id,
+        processados,
+        upserted,
+        erros,
+        modalidadesFalhas,
+      });
+      // Parcial: exit 0 para o Cron não ficar vermelho a cada flake do PNCP.
+      // O IngestRun fica com status "partial" para auditoria.
+    }
   } catch (err) {
     await prisma.ingestRun.update({
       where: { id: run.id },

@@ -31,10 +31,12 @@ Fontes oficiais usadas na implementação:
 ```env
 PNCP_BASE_URL=https://pncp.gov.br/api/consulta
 PNCP_RATE_LIMIT_MS=350
-PNCP_MAX_RETRIES=5
+PNCP_MAX_RETRIES=8
 ```
 
 Não adicione `PNCP_LOGIN` / `PNCP_SENHA` neste produto — credenciais de integração são para plataformas que **enviam** contratações ao PNCP.
+
+Em **504**, o client usa backoff mais longo (até ~90s) e até `PNCP_MAX_RETRIES` tentativas. Se a modalidade ainda falhar, o cron **pula** para a próxima (status `partial`) em vez de derrubar a run inteira.
 
 ## Endpoint de ingestão
 
@@ -69,7 +71,7 @@ Modalidades (códigos 1–13) e situações da contratação (1–4) estão em `
 
 | Tentativa | Resultado | Ação |
 | --- | --- | --- |
-| `GET .../publicacao` | HTTP **504** / timeout frequentes | Retry com backoff (máx. 5); janelas curtas de data |
+| `GET .../publicacao` | HTTP **504** / timeout frequentes | Retry com backoff longo (máx. 8); skip da modalidade; janelas curtas de data |
 | `GET /api/pncp/.../itens` | pode exigir auth ou falhar | Best-effort; UI mostra vazio se indisponível |
 | OpenAPI `GET /api/consulta/v3/api-docs` | HTTP **500** intermitente | Schema via manual + Swagger UI |
 
