@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
+import { isEdgeCacheablePath, PUBLIC_PAGE_CACHE_CONTROL } from '@/lib/public-cache';
 import { rateLimit } from '@/lib/rate-limit';
 import { clientIp } from '@/lib/security';
 
@@ -42,9 +43,15 @@ export function middleware(req: NextRequest) {
     }
   }
 
-  return NextResponse.next();
+  const res = NextResponse.next();
+  if (isEdgeCacheablePath(path)) {
+    // Next não troca este header pelo no-store do force-dynamic.
+    // A borda do Railway guarda a página e o processo pode dormir.
+    res.headers.set('Cache-Control', PUBLIC_PAGE_CACHE_CONTROL);
+  }
+  return res;
 }
 
 export const config = {
-  matcher: ['/busca', '/rss'],
+  matcher: ['/((?!_next/static|_next/image|_next/webpack-hmr|favicon.ico).*)'],
 };

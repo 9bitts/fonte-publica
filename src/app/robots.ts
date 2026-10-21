@@ -8,33 +8,33 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/api/'],
+        disallow: ['/api/', '/contratacao/', '/orgao/', '/municipio/'],
       },
       // Buscas generativas / agentes (GEO): permitir leitura do conteúdo HTML.
       {
         userAgent: 'GPTBot',
         allow: '/',
-        disallow: ['/api/'],
+        disallow: ['/api/', '/contratacao/', '/orgao/', '/municipio/'],
       },
       {
         userAgent: 'OAI-SearchBot',
         allow: '/',
-        disallow: ['/api/'],
+        disallow: ['/api/', '/contratacao/', '/orgao/', '/municipio/'],
       },
       {
         userAgent: 'ClaudeBot',
         allow: '/',
-        disallow: ['/api/'],
+        disallow: ['/api/', '/contratacao/', '/orgao/', '/municipio/'],
       },
       {
         userAgent: 'PerplexityBot',
         allow: '/',
-        disallow: ['/api/'],
+        disallow: ['/api/', '/contratacao/', '/orgao/', '/municipio/'],
       },
       {
         userAgent: 'Google-Extended',
         allow: '/',
-        disallow: ['/api/'],
+        disallow: ['/api/', '/contratacao/', '/orgao/', '/municipio/'],
       },
     ],
     sitemap: `${site}/sitemap.xml`,
