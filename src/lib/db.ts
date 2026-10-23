@@ -50,13 +50,29 @@ function isWakeError(err: unknown): boolean {
   );
 }
 
-function track<T>(client: PrismaClient, run: () => T): T {
+function isPromise(value: unknown): value is Promise<unknown> {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    typeof (value as { then?: unknown }).then === 'function'
+  );
+}
+
+function track(client: PrismaClient, run: () => unknown): unknown {
   inflight += 1;
   if (idleTimer) clearTimeout(idleTimer);
+  const finish = () => {
+    inflight = Math.max(0, inflight - 1);
+    if (inflight === 0) scheduleIdleDisconnect(client);
+  };
   try {
     const result = run();
-    if (result && typeof (result as Promise<unknown>).then === 'function') {
-      const promise = (result as Promise<unknown>).then(
+    if (!isPromise(result)) {
+      finish();
+      return result;
+    }
+    return result
+      .then(
         (value) => value,
         async (err: unknown) => {
           if (process.env.NODE_ENV === 'production' && isWakeError(err)) {
@@ -65,18 +81,10 @@ function track<T>(client: PrismaClient, run: () => T): T {
           }
           throw err;
         },
-      );
-      return promise.finally(() => {
-        inflight = Math.max(0, inflight - 1);
-        if (inflight === 0) scheduleIdleDisconnect(client);
-      }) as T;
-    }
-    inflight = Math.max(0, inflight - 1);
-    if (inflight === 0) scheduleIdleDisconnect(client);
-    return result;
+      )
+      .finally(finish);
   } catch (err) {
-    inflight = Math.max(0, inflight - 1);
-    if (inflight === 0) scheduleIdleDisconnect(client);
+    finish();
     throw err;
   }
 }
